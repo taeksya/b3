@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Codenames Игра</title>
+    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Rubik', sans-serif;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0066ff, #8a2be2);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: white;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 500px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 18px;
+            line-height: 1.4;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            background: rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+        }
+        
+        .words-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            width: 100%;
+            margin-bottom: 30px;
+        }
+        
+        .card {
+            perspective: 1000px;
+            height: 120px;
+        }
+        
+        .card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.8s;
+            transform-style: preserve-3d;
+            cursor: pointer;
+        }
+        
+        .card.flipped .card-inner {
+            transform: rotateY(180deg);
+        }
+        
+        .card-front, .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 15px;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+            font-weight: bold;
+            font-size: 18px;
+            padding: 15px;
+        }
+        
+        .card-front {
+            background: linear-gradient(135deg, #ff9a9e, #fad0c4);
+            color: #fff;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+        }
+        
+        .card-back {
+            background: linear-gradient(135deg, #a18cd1, #fbc2eb);
+            color: white;
+            transform: rotateY(180deg);
+        }
+        
+        .input-container {
+            width: 100%;
+            margin-bottom: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+        }
+        
+        #answer-input {
+            width: 100%;
+            padding: 18px;
+            border: none;
+            border-radius: 25px;
+            font-size: 18px;
+            text-align: center;
+            font-family: 'Rubik', sans-serif;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            margin-bottom: 15px;
+        }
+        
+        #submit-btn {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #ff758c, #ff7eb3);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+            transition: transform 0.2s, box-shadow 0.2s;
+            font-family: 'Rubik', sans-serif;
+        }
+        
+        #submit-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.4);
+        }
+        
+        #submit-btn:active {
+            transform: translateY(0);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+        
+        #result {
+            font-size: 22px;
+            font-weight: bold;
+            text-align: center;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            display: none;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        
+        .success {
+            background: linear-gradient(135deg, #43e97b, #38f9d7) !important;
+            color: white !important;
+        }
+        
+        .failure {
+            background: linear-gradient(135deg, #ff5858, #f09819) !important;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .hint {
+            margin-top: 15px;
+            font-size: 14px;
+            text-align: center;
+            opacity: 0.8;
+        }
+        
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Чтобы получить желаемое, тебе нужно сыграть со мной в codenames и отгадать ключевую ассоциацию (у тебя всего одна попытка, хихик!)</h1>
+        </div>
+        
+        <div class="words-grid">
+            <div class="card">
+                <div class="card-inner">
+                    <div class="card-front">?</div>
+                    <div class="card-back">Станция</div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-inner">
+                    <div class="card-front">?</div>
+                    <div class="card-back">Дуальность</div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-inner">
+                    <div class="card-front">?</div>
+                    <div class="card-back">Пуск</div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-inner">
+                    <div class="card-front">?</div>
+                    <div class="card-back">Крестик</div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-inner">
+                    <div class="card-front">?</div>
+                    <div class="card-back">Шок</div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-inner">
+                    <div class="card-front">?</div>
+                    <div class="card-back">Отклик</div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-inner">
+                    <div class="card-front">?</div>
+                    <div class="card-back">Сенсорный</div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-inner">
+                    <div class="card-front">?</div>
+                    <div class="card-back">Курок</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="input-container">
+            <input type="text" id="answer-input" placeholder="Введите вашу догадку...">
+            <button id="submit-btn">Проверить ответ</button>
+            <div class="hint">Нажмите на карточки, чтобы перевернуть их и увидеть слова</div>
+        </div>
+        
+        <div id="result"></div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const cards = document.querySelectorAll('.card');
+            const answerInput = document.getElementById('answer-input');
+            const submitBtn = document.getElementById('submit-btn');
+            const result = document.getElementById('result');
+            
+            let attemptUsed = false;
+            
+            // Добавляем обработчики для переворачивания карточек
+            cards.forEach(card => {
+                card.addEventListener('click', function() {
+                    if (!attemptUsed) {
+                        this.classList.toggle('flipped');
+                    }
+                });
+            });
+            
+            submitBtn.addEventListener('click', checkAnswer);
+            
+            answerInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    checkAnswer();
+                }
+            });
+            
+            function checkAnswer() {
+                if (attemptUsed) {
+                    result.textContent = 'У тебя была всего одна попытка! Хихик!';
+                    result.className = 'failure';
+                    result.style.display = 'block';
+                    return;
+                }
+                
+                const userAnswer = answerInput.value.trim().toLowerCase();
+                
+                if (userAnswer === 'геймпад') {
+                    result.textContent = 'Поздравляю! Получи свой приз в черном рюкзачке!';
+                    result.className = 'success';
+                    result.style.display = 'block';
+                    
+                    // Анимируем карточки при победе
+                    cards.forEach((card, index) => {
+                        setTimeout(() => {
+                            card.classList.add('flipped');
+                        }, index * 200);
+                    });
+                } else {
+                    result.textContent = 'Неверно! Попытка использована. Хихик!';
+                    result.className = 'failure';
+                    result.style.display = 'block';
+                }
+                
+                attemptUsed = true;
+                answerInput.disabled = true;
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Попытка использована';
+            }
+        });
+    </script>
+</body>
+</html>
